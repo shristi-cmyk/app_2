@@ -24,7 +24,7 @@ function Chat({ me }) {
       const f = h.today.fields || h.today.draft
       if (f) setEdit({ done: toLines(f.done), blockers: toLines(f.blockers), plan: toLines(f.plan) })
     }
-  }).catch((e) => setNotice(e.message)), [])
+  }).catch((e) => setHistory({ rows: [], loadError: e.message })), [])
   useEffect(() => { load() }, [load])
 
   const say = (who, text) => setThread((t) => [...t, { who, text }])
@@ -115,7 +115,7 @@ function Chat({ me }) {
 
       <section style={card}>
         <h2 style={{ marginTop: 0 }}>My history <span style={muted}>(last 30 days, from the EOD sheet)</span></h2>
-        {!history ? <p>Loading…</p> : history.rows.length === 0 ? <p style={muted}>No logged entries yet.</p> : (
+        {!history ? <p>Loading…</p> : history.loadError || history.sheetError ? <p style={{ ...muted, color: '#b3261e' }}>History is unavailable: {history.loadError || history.sheetError}</p> : history.rows.length === 0 ? <p style={muted}>No logged entries yet.</p> : (
           <div style={{ overflowX: 'auto' }}>
             <table style={table}><thead><tr><th style={th}>Date</th><th style={th}>Done</th><th style={th}>Blockers</th><th style={th}>Plan</th><th style={th}>Status</th></tr></thead>
               <tbody>{history.rows.map((r) => (
