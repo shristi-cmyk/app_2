@@ -2,7 +2,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import Script from 'next/script'
 
-const GMAIL = { serviceId: 'rowo0bqrhj5g', filteredActions: ['rowogelpy0h6'] }
+const CONNECT = {
+  sheets: { name: 'Google Sheets', serviceId: 'rowqm5xi2', filteredActions: ['rowyysj8ut82', 'rowlpijbo5k1'] },
+  gmail: { name: 'Gmail', serviceId: 'rowo0bqrhj5g', filteredActions: ['rowogelpy0h6'] }
+}
 
 const card = { background: '#fff', borderRadius: 12, padding: 20, marginBottom: 16, boxShadow: '0 1px 3px rgba(0,0,0,.08)' }
 const input = { width: '100%', padding: 10, borderRadius: 8, border: '1px solid #ccd', boxSizing: 'border-box', font: 'inherit' }
@@ -83,7 +86,7 @@ function Bars({ rows, color }) {
 function Dashboard({ stats, refresh, setMessage, go }) {
   const [limit, setLimit] = useState(25)
   if (!stats) return <p>Loading…</p>
-  if (!stats.total) return <section style={card}><h2>Start here</h2><p>Import your apps sheet and pipeline sheet in <a href="#" onClick={(e) => { e.preventDefault(); go('setup') }}>Setup</a>.</p></section>
+  if (!stats.total) return <section style={card}><h2>Start here</h2><p>Connect Google Sheets and import your apps and pipeline in <a href="#" onClick={(e) => { e.preventDefault(); go('setup') }}>Setup</a>.</p></section>
   const judged = stats.total - stats.pending
   const job = stats.job
   const run = async (body) => { try { await post('/api/outreach/judge', body); refresh() } catch (e) { setMessage(e.message) } }
@@ -320,37 +323,35 @@ function Pipeline({ setMessage }) {
 
 function Setup({ refresh, setMessage }) {
   const [settings, setSettings] = useState(null)
-  const [gmail, setGmail] = useState(null)
-  const loadStatus = useCallback(() => getJson('/api/status').then((s) => setGmail({ connected: s.connected.gmail, account: s.accounts?.gmail })).catch(() => setGmail({ connected: false })), [])
-  useEffect(() => { getJson('/api/outreach/settings').then(setSettings); loadStatus() }, [loadStatus])
-  const [pending, setPending] = useState(false)
+  const [conn, setConn] = useState(null)
+  const [sources, setSources] = useState(null)
+  const loadStatus = useCallback(() => getJson('/api/status').then((s) => setConn({ connected: s.connected, accounts: s.accounts || {} })).catch(() => setConn({ connected: {}, accounts: {} })), [])
+  useEffect(() => {
+    getJson('/api/outreach/settings').then(setSettings)
+    getJson('/api/outreach/dashboard').then((d) => setSources(d.sources))
+    loadStatus()
+  }, [loadStatus])
+  // Which app's popup is open, so the success message is stored against the right app.
+  const [pending, setPending] = useState(null)
   useEffect(() => {
     const onMessage = async (event) => {
       if (event.data?.type === 'viasocket_connection_success' && pending) {
-        try { await post('/api/connected', { app: 'gmail', authId: event.data.data.id }); loadStatus() } catch (e) { setMessage(e.message) }
+        try { await post('/api/connected', { app: pending, authId: event.data.data.id }); loadStatus() } catch (e) { setMessage(e.message) }
       } else if (event.data?.type === 'viasocket_connection_error') setMessage(event.data.error?.message || 'Connection failed')
     }
     window.addEventListener('message', onMessage)
     return () => window.removeEventListener('message', onMessage)
   }, [pending, loadStatus, setMessage])
-  const connect = async () => {
+  const connect = async (key) => {
     try {
       const token = await fetch('/api/token').then((r) => r.text())
-      setPending(true)
-      window.openViasocketConnection(token, GMAIL.serviceId, { filteredActions: GMAIL.filteredActions, skipActionSelection: true })
+      setPending(key)
+      window.openViasocketConnection(token, CONNECT[key].serviceId, { filteredActions: CONNECT[key].filteredActions, skipActionSelection: true })
     } catch (e) { setMessage(e.message) }
   }
-  const upload = (kind) => async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    setMessage(`Importing ${file.name}…`)
-    try {
-      const r = await getJson(`/api/outreach/import?kind=${kind}`, { method: 'POST', body: await file.text() })
-      setMessage(kind === 'apps' ? `Imported apps: ${r.added} new, ${r.total} in total.` : `Imported pipeline: ${r.total} rows.`)
-      refresh()
-    } catch (err) { setMessage(err.message) }
-    e.target.value = ''
-  }
+  const connectButton = (key) => conn?.connected[key]
+    ? <p style={{ margin: 0 }}>✓ {CONNECT[key].name} connected{conn.accounts[key] ? ` as ${conn.accounts[key]}` : ''}</p>
+    : <button style={button} onClick={() => connect(key)}>Connect {CONNECT[key].name}</button>
   const field = (k, label, long) => (
     <label key={k} style={{ display: 'block', marginBottom: 12 }}>{label}
       {long ? <textarea style={{ ...input, minHeight: 80 }} value={settings[k]} onChange={(e) => setSettings({ ...settings, [k]: e.target.value })} />
@@ -360,14 +361,19 @@ function Setup({ refresh, setMessage }) {
   return (
     <>
       <section style={card}>
-        <h2 style={{ marginTop: 0 }}>1. Import your sheets</h2>
-        <p style={{ color: '#555', marginTop: 0 }}>In Google Sheets open the tab, then File → Download → Comma-separated values (.csv), and pick the file here. Re-importing updates app details and keeps verdicts and drafts.</p>
-        <label style={{ display: 'block', marginBottom: 12 }}><b>Apps</b> (“TOTAL PUBLIC APPS” tab)<br /><input type="file" accept=".csv,text/csv" onChange={upload('apps')} /></label>
-        <label style={{ display: 'block' }}><b>Pipeline</b> (“Shristi_Pipleline” tab). Replaces the sheet rows; rows added by this app stay.<br /><input type="file" accept=".csv,text/csv" onChange={upload('pipeline')} /></label>
+        <h2 style={{ marginTop: 0 }}>1. Bring in your Google Sheets</h2>
+        <div style={{ marginBottom: 16 }}>{connectButton('sheets')}</div>
+        {conn?.connected.sheets && sources && (
+          <>
+            <SheetSource kind="apps" title="Apps list" source={sources.apps} refresh={refresh} setMessage={setMessage} />
+            <SheetSource kind="pipeline" title="Pipeline" source={sources.pipeline} refresh={refresh} setMessage={setMessage} />
+            <p style={{ color: '#555', fontSize: 14, marginBottom: 0 }}>Import again any time to pick up changes in the sheet. Your verdicts and drafts are kept.</p>
+          </>
+        )}
       </section>
       <section style={card}>
         <h2 style={{ marginTop: 0 }}>2. Connect Gmail</h2>
-        {gmail?.connected ? <p>Sending from {gmail.account || 'your connected Gmail'}.</p> : <button style={button} onClick={connect}>Connect Gmail</button>}
+        {connectButton('gmail')}
       </section>
       {settings && (
         <section style={card}>
@@ -389,5 +395,51 @@ function Setup({ refresh, setMessage }) {
         </section>
       )}
     </>
+  )
+}
+
+function SheetSource({ kind, title, source, refresh, setMessage }) {
+  const [spreadsheets, setSpreadsheets] = useState([])
+  const [tabs, setTabs] = useState([])
+  const [pick, setPick] = useState({ spreadsheetId: source.spreadsheetId, sheetId: source.sheetId })
+  const [done, setDone] = useState(source.importedAt ? source : null)
+  const [busy, setBusy] = useState(false)
+  useEffect(() => { getJson('/api/options?kind=spreadsheets').then(setSpreadsheets).catch((e) => setMessage(e.message)) }, [setMessage])
+  useEffect(() => {
+    setTabs([])
+    if (pick.spreadsheetId) getJson('/api/options?kind=tabs&spreadsheet=' + encodeURIComponent(pick.spreadsheetId)).then(setTabs).catch((e) => setMessage(e.message))
+  }, [pick.spreadsheetId, setMessage])
+  const labelOf = (list, v) => (list.find((o) => o.value === v) || {}).label || ''
+  // The saved choice may not be in the first page of the picker; keep it selectable.
+  const sheetOptions = spreadsheets.some((o) => o.value === pick.spreadsheetId) || !pick.spreadsheetId ? spreadsheets
+    : [{ value: pick.spreadsheetId, label: source.spreadsheetId === pick.spreadsheetId ? source.label.split(' · ')[0] : pick.spreadsheetId }, ...spreadsheets]
+  const run = async () => {
+    setBusy(true)
+    setMessage(`Reading ${title.toLowerCase()} from Google Sheets…`)
+    try {
+      const label = `${labelOf(sheetOptions, pick.spreadsheetId)} · ${labelOf(tabs, pick.sheetId)}`
+      const r = await post('/api/outreach/import', { kind, ...pick, label })
+      setMessage(kind === 'apps' ? `Imported ${r.total} apps (${r.added} new).` : `Imported ${r.total} pipeline rows.`)
+      setDone({ importedAt: new Date().toISOString() })
+      refresh()
+    } catch (e) { setMessage(e.message) } finally { setBusy(false) }
+  }
+  const select = { ...input, marginBottom: 8 }
+  return (
+    <div style={{ borderTop: '1px solid #eee', padding: '12px 0' }}>
+      <b>{title}</b>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 8, marginTop: 8 }}>
+        <select style={select} value={pick.spreadsheetId} onChange={(e) => setPick({ spreadsheetId: e.target.value, sheetId: '' })}>
+          <option value="">Choose a spreadsheet…</option>
+          {sheetOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <select style={select} value={pick.sheetId} onChange={(e) => setPick({ ...pick, sheetId: e.target.value })} disabled={!tabs.length}>
+          <option value="">Choose a tab…</option>
+          {tabs.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+      </div>
+      <button style={button} disabled={busy || !pick.spreadsheetId || !pick.sheetId} onClick={run}>{busy ? 'Importing…' : done ? 'Import again' : 'Import'}</button>
+      {done?.importedAt && <span style={{ marginLeft: 10, color: '#555', fontSize: 14 }}>Last imported {new Date(done.importedAt).toLocaleString()}</span>}
+    </div>
   )
 }

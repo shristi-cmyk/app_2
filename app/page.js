@@ -5,7 +5,7 @@ import Script from 'next/script'
 const APPS = [
   { key: 'sheets', serviceId: 'rowqm5xi2',
     name: 'Google Sheets', 
-    filteredActions: ['rowyysj8ut82'],
+    filteredActions: ['rowyysj8ut82', 'rowlpijbo5k1'],
     icon: 'https://stuff.thingsofbrand.com/google.com/images/img4_googlesheet.png' },
   { key: 'docs', serviceId: 'row14rstzmzo',
     name: 'Google Docs', 

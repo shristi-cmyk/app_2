@@ -7,7 +7,7 @@ Two tools behind one password: **Partner Outreach** (`/outreach`) and **Invoice 
 Goes through the public apps list and, for each app, decides whether to pitch the **SDK** (viaSocket Embed), a **GTM** partnership (co-marketing, listing), or **not to reach out**, with a reason.
 For SDK and GTM it drafts the email. You review each draft: send it as is, edit it, or tell the AI what to change. Sent emails go out through your Gmail and are added to the pipeline.
 
-1. **Setup → Import**: in Google Sheets, File → Download → CSV for the `TOTAL PUBLIC APPS` tab and the `Shristi_Pipleline` tab, then pick each file. Re-importing keeps verdicts and drafts.
+1. **Setup → Connect Google Sheets**, then **Import** the apps list (`Pipeline'Oct` → `TOTAL PUBLIC APPS`) and the pipeline (`Partnership <> Listing/Co-Marketing/Integrations` → `Shristi_Pipleline`); both are preselected. Rows are read with the Sheets "List Rows in Sheet" action. Importing again keeps verdicts and drafts.
 2. **Setup → Connect Gmail**, and fill in your name, pitches and email style.
 3. **Dashboard → Check the next N apps**. Clear cases are settled by rules for free (own products, enterprise giants, duplicates, already active or rejected in the pipeline); the rest go to viaSocket's built-in AI (Run AI Model, 1 credit per call), using the same embed secret, so no extra API key is needed.
 4. **Review drafts**: send, edit, ask for changes, switch SDK/GTM, or skip.

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { parseCsv } from '../lib/outreach/csv.js'
-import { parseApps, parsePipeline } from '../lib/outreach/sheets.js'
+import { parseApps, parsePipeline, letterRowsToArrays } from '../lib/outreach/sheets.js'
 import { ruleVerdict } from '../lib/outreach/rules.js'
 
 test('parseCsv handles quotes, commas and newlines', () => {
@@ -39,4 +39,9 @@ test('rules settle clear no-outreach cases', () => {
   assert.equal(ruleVerdict(app, [{ partner: 'Slite', status: 'in conversation' }], seen), 'in_pipeline')
   assert.equal(ruleVerdict({ ...app, domain: 'google.com' }, [], seen), 'enterprise')
   assert.equal(ruleVerdict({ ...app, id: 'b' }, [], seen), 'duplicate')
+})
+
+test('letterRowsToArrays turns Sheets letter keys into positional rows', () => {
+  assert.deepEqual(letterRowsToArrays([{ _rowNumber: 1, A: 'x', C: 'z', AA: 'aa' }])[0].slice(0, 3), ['x', '', 'z'])
+  assert.equal(letterRowsToArrays([{ AA: 'aa' }])[0][26], 'aa')
 })

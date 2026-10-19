@@ -6,8 +6,8 @@ export async function POST(req) {
   const { app, authId } = await req.json()
   if (!APPS[app] || !authId) return Response.json({ error: 'bad request' }, { status: 400 })
   try {
-    // Docs and Gmail run actions, so they are enabled once; Sheets only listens for events.
-    const scriptId = app === 'sheets' ? null : await enableApp(UID, authId, APPS[app].serviceId)
+    // Each app is enabled once so its actions can run (Sheets: Partner Outreach reads rows with it).
+    const scriptId = await enableApp(UID, authId, APPS[app].serviceId)
     updateState((s) => {
       s.auth[app] = authId
       if (scriptId) s.scripts[app] = scriptId

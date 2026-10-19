@@ -1,14 +1,13 @@
-import { parseApps, parsePipeline } from '../../../../lib/outreach/sheets.js'
-import { importApps, importPipeline } from '../../../../lib/outreach/service.js'
+import { importFromSheet } from '../../../../lib/outreach/service.js'
 
-// Body: CSV text exported from Google Sheets (File → Download → CSV). ?kind=apps|pipeline
+// Body: { kind: 'apps' | 'pipeline', spreadsheetId, sheetId, label }
 export async function POST(req) {
-  const kind = new URL(req.url).searchParams.get('kind')
+  const { kind, spreadsheetId, sheetId, label } = await req.json()
+  if (!['apps', 'pipeline'].includes(kind) || !spreadsheetId || !sheetId) {
+    return Response.json({ error: 'Pick a spreadsheet and a tab' }, { status: 400 })
+  }
   try {
-    const text = await req.text()
-    if (kind === 'apps') return Response.json(importApps(parseApps(text)))
-    if (kind === 'pipeline') return Response.json(importPipeline(parsePipeline(text)))
-    return Response.json({ error: 'kind must be apps or pipeline' }, { status: 400 })
+    return Response.json(await importFromSheet(kind, { spreadsheetId, sheetId, label }))
   } catch (e) {
     return Response.json({ error: e.message }, { status: 400 })
   }
