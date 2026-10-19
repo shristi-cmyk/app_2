@@ -38,6 +38,14 @@ function Today({ setNotice }) {
     } catch (e) { setNotice(e.message) }
     setBusy(false)
   }
+  async function summary() {
+    setBusy(true)
+    try {
+      const r = await post('/api/eod/team', { action: 'daily_summary', date })
+      setNotice(r.status === 'sent' ? `Summary for ${date} sent to the TL on Slack.` : `Summary not sent: ${r.error}`)
+    } catch (e) { setNotice(e.message) }
+    setBusy(false)
+  }
   const counts = status ? status.members.reduce((a, m) => ({ ...a, [m.status]: (a[m.status] || 0) + 1 }), {}) : {}
   return (
     <section style={card}>
@@ -45,6 +53,7 @@ function Today({ setNotice }) {
         <h2 style={{ margin: 0 }}>Team status</h2>
         <input type="date" style={{ ...input, width: 170 }} value={date} onChange={(e) => { setDate(e.target.value); load(e.target.value) }} />
         <button style={ghost} onClick={check} disabled={busy}>{busy ? 'Checking…' : 'Run missing check & DM reminders'}</button>
+        <button style={ghost} onClick={summary} disabled={busy}>Send this day's summary to TL</button>
       </div>
       {!status ? <p>Loading…</p> : (
         <>
@@ -63,14 +72,18 @@ function Today({ setNotice }) {
 }
 
 function Brief({ roster, setNotice }) {
-  const [q, setQ] = useState({ employeeId: '', from: daysAgo(30), to: iso(new Date()), question: '' })
+  const [q, setQ] = useState({ employeeId: '', from: daysAgo(30), to: iso(new Date()), question: '', sendToSlack: true })
   const [month, setMonth] = useState(iso(new Date()).slice(0, 7))
   const [result, setResult] = useState(null)
   const [busy, setBusy] = useState('')
   async function ask(e) {
     e?.preventDefault()
     setBusy('brief')
-    try { setResult(await post('/api/eod/team', { action: 'brief', ...q })) } catch (err) { setNotice(err.message) }
+    try {
+      const r = await post('/api/eod/team', { action: 'brief', ...q })
+      setResult(r)
+      if (q.sendToSlack) setNotice(r.slack?.ts ? 'Brief sent to the TL on Slack.' : `Brief ready; Slack send failed: ${r.slack?.error || 'unknown'}`)
+    } catch (err) { setNotice(err.message) }
     setBusy('')
   }
   async function rollup() {
@@ -96,6 +109,7 @@ function Brief({ roster, setNotice }) {
           <input style={input} placeholder="Optional question, e.g. which blockers keep coming back?" value={q.question} onChange={(e) => setQ({ ...q, question: e.target.value })} />
           <button style={button} type="submit" disabled={!!busy}>{busy === 'brief' ? 'Writing…' : 'Get brief'}</button>
         </div>
+        <label style={{ ...muted, display: 'block', marginTop: 8 }}><input type="checkbox" checked={q.sendToSlack} onChange={(e) => setQ({ ...q, sendToSlack: e.target.checked })} /> Also send it to the TL review channel/DM on Slack</label>
       </form>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 12 }}>
         <span style={muted}>Monthly rollup for the team:</span>

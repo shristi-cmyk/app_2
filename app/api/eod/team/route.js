@@ -1,6 +1,6 @@
 import { route, body } from '../../../../lib/eod/http.js'
 import { requireRole, HttpError } from '../../../../lib/eod/auth.js'
-import { teamStatus, teamHistory, tlBrief, monthlyRollup, missingCheck, roster, today } from '../../../../lib/eod/service.js'
+import { teamStatus, teamHistory, tlBrief, monthlyRollup, missingCheck, roster, today, sendDailySummary, sendBriefToTl } from '../../../../lib/eod/service.js'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,7 +18,14 @@ export const GET = route(async (req) => {
 export const POST = route(async (req) => {
   const me = requireRole(req, 'tl')
   const b = await body(req)
-  if (b.action === 'brief') return Response.json(await tlBrief(me, { employeeId: b.employeeId || '', from: b.from, to: b.to, question: b.question }))
+  if (b.action === 'brief') {
+    const result = await tlBrief(me, { employeeId: b.employeeId || '', from: b.from, to: b.to, question: b.question })
+    if (b.sendToSlack) {
+      try { result.slack = await sendBriefToTl(me, result) } catch (e) { result.slack = { error: e.message } }
+    }
+    return Response.json(result)
+  }
+  if (b.action === 'daily_summary') return Response.json(await sendDailySummary(me, b.date || today(), { force: true }))
   if (b.action === 'rollup') return Response.json(await monthlyRollup(me, b.month))
   if (b.action === 'missing_check') return Response.json(await missingCheck(me, b.date || today()))
   throw new HttpError(400, 'Unknown action')

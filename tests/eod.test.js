@@ -120,3 +120,9 @@ test('passwords are hashed and verified', () => {
   assert.ok(verifyPassword('correct horse', h))
   assert.ok(!verifyPassword('wrong', h))
 })
+
+test('the scheduled rollup covers the month that just ended', async () => {
+  const { previousMonth } = await import('../lib/eod/service.js')
+  assert.equal(previousMonth('2026-11-01'), '2026-10')
+  assert.equal(previousMonth('2027-01-01'), '2026-12')
+})

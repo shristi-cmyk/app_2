@@ -112,24 +112,37 @@ function Builder({ ev, onClose, onChange, setNotice }) {
   )
 }
 
+const SCHEDULES = [
+  ['daily', 'reminderCron', 'End of day: reminders and TL summary', 'Every working day at this time, anyone without an entry gets a private Slack DM (once), and the TL gets the day\'s summary (who submitted, who is missing, entries to review, blockers). Non-working days are skipped.'],
+  ['monthly', 'rollupCron', 'End of month: TL rollup', 'On the 1st, the TL gets the evidence rollup for the month that just ended (consistency, themes, blockers, gaps; never a rating). Sent once per month.']
+]
+
 function Schedule({ data, act, busy }) {
-  const [cron, setCron] = useState(data.settings.reminderCron)
   const [appUrl, setAppUrl] = useState(data.settings.appUrl || (typeof window !== 'undefined' ? window.location.origin : ''))
-  const s = data.schedule
+  const [crons, setCrons] = useState({ daily: data.settings.reminderCron, monthly: data.settings.rollupCron })
   return (
     <section style={card}>
-      <h3 style={{ marginTop: 0 }}>End-of-day missing check</h3>
-      <p style={muted}>A viaSocket schedule calls this app at the time below; the app finds who hasn't logged and DMs each of them privately on Slack (once per day), then sends the EOD Entry Missing event. Days that are not working days are skipped.</p>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 8 }}>
-        <Badge value={s.state} label={s.state === 'active' ? 'Active' : s.state.replace(/_/g, ' ')} />
-        {s.understoodAs && <span style={muted}>viaSocket runs it: {s.understoodAs}</span>}
-        {s.error && <span style={{ color: '#b3261e' }}>{s.error}</span>}
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: 8, alignItems: 'end' }}>
-        <label>Schedule (cron or words)<input style={input} value={cron} onChange={(e) => setCron(e.target.value)} placeholder="0 19 * * 1-5" /></label>
-        <label>This app's public URL<input style={input} value={appUrl} onChange={(e) => setAppUrl(e.target.value)} placeholder="https://…" /></label>
-        <button style={button} disabled={!!busy} onClick={() => act({ action: 'schedule', cron, appUrl }, 'schedule')}>{busy === 'schedule' ? 'Saving…' : 'Save schedule'}</button>
-      </div>
+      <h3 style={{ marginTop: 0 }}>Schedules</h3>
+      <p style={muted}>viaSocket runs these and calls this app; nothing has to stay awake on this side. Messages go to the TL review channel/DM chosen in Settings. Times are cron in viaSocket's clock: check the "runs" line it reads back.</p>
+      <label style={{ display: 'block', marginBottom: 12 }}>This app's public URL<input style={input} value={appUrl} onChange={(e) => setAppUrl(e.target.value)} placeholder="https://…" /></label>
+      {SCHEDULES.map(([job, , title, help]) => {
+        const s = data.schedule?.[job] || { state: 'not_set_up' }
+        return (
+          <div key={job} style={{ borderTop: '1px solid #f0f1f3', paddingTop: 12, marginTop: 12 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+              <strong>{title}</strong>
+              <Badge value={s.state} label={s.state === 'active' ? 'Active' : s.state.replace(/_/g, ' ')} />
+              {s.understoodAs && <span style={muted}>runs: {s.understoodAs}</span>}
+              {s.error && <span style={{ color: '#b3261e' }}>{s.error}</span>}
+            </div>
+            <p style={muted}>{help}</p>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <input style={{ ...input, maxWidth: 260 }} value={crons[job] || ''} onChange={(e) => setCrons({ ...crons, [job]: e.target.value })} />
+              <button style={button} disabled={!!busy} onClick={() => act({ action: 'schedule', job, cron: crons[job], appUrl }, 'schedule:' + job)}>{busy === 'schedule:' + job ? 'Saving…' : 'Save schedule'}</button>
+            </div>
+          </div>
+        )
+      })}
     </section>
   )
 }

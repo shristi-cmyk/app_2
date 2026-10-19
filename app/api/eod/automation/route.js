@@ -10,7 +10,7 @@ export const GET = route(async (req) => {
   requireRole(req, 'admin')
   await refreshFlows()
   const events = await Promise.all(Object.keys(EVENTS).map((k) => eventStatus(k, { withRuns: true, fresh: false })))
-  return Response.json({ events, schedule: await scheduleStatus(), settings: { reminderCron: db().settings.reminderCron, appUrl: db().settings.appUrl }, deliveries: recentDeliveries() })
+  return Response.json({ events, schedule: await scheduleStatus(), settings: { reminderCron: db().settings.reminderCron, rollupCron: db().settings.rollupCron, appUrl: db().settings.appUrl }, deliveries: recentDeliveries() })
 })
 
 export const POST = route(async (req) => {
@@ -47,6 +47,6 @@ export const POST = route(async (req) => {
     audit(me, `automation.${b.action}`, { event: key })
     return Response.json(await eventStatus(key))
   }
-  if (b.action === 'schedule') return Response.json(await setupSchedule(me, { cron: b.cron, appUrl: b.appUrl || db().settings.appUrl }))
+  if (b.action === 'schedule') return Response.json(await setupSchedule(me, { job: b.job || 'daily', cron: b.cron, appUrl: b.appUrl || db().settings.appUrl }))
   throw new HttpError(400, 'Unknown action')
 })
