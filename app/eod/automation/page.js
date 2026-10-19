@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Script from 'next/script'
-import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, fmtTime } from '../ui.js'
+import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, fmtTime, Skeleton } from '../ui.js'
 
 const STATE_LABEL = { not_set_up: 'Not set up', incomplete: 'Incomplete', active: 'Active', paused: 'Paused', deleted: 'Deleted', error: 'Error' }
 
@@ -37,7 +37,7 @@ function Page() {
     <>
       <Notice message={notice} onClose={() => setNotice('')} />
       <p style={muted}>Each product event runs a viaSocket flow. Set one up, then open it in the builder to add what should happen (for example post to another channel or update a CRM), mapping fields from the sample payload. An event is shown as Active only when viaSocket reports the flow published with at least one step.</p>
-      {!data ? <p>Loading…</p> : data.events.map((ev) => (
+      {!data ? <div style={card}><Skeleton lines={5} /></div> : data.events.map((ev) => (
         <section key={ev.key} style={card}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <h3 style={{ margin: 0 }}>{ev.label}</h3>

@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, List, Picker, fmtTime } from '../ui.js'
+import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, List, Picker, fmtTime, Avatar, Skeleton } from '../ui.js'
 
 export default function Team() {
   return <Shell path="/eod/team" role="tl">{() => <Dashboard />}</Shell>
@@ -55,14 +55,14 @@ function Today({ setNotice }) {
         <button style={ghost} onClick={check} disabled={busy}>{busy ? 'Checking…' : 'Run missing check & DM reminders'}</button>
         <button style={ghost} onClick={summary} disabled={busy}>Send this day's summary to TL</button>
       </div>
-      {!status ? <p>Loading…</p> : (
+      {!status ? <div style={{ marginTop: 16 }}><Skeleton lines={4} /></div> : (
         <>
-          {status.sheetError && <p style={{ color: '#b3261e' }}>Could not read the sheet: {status.sheetError}</p>}
+          {status.sheetError && <p style={{ color: '#d03b3b' }}>✕ Could not read the sheet: {status.sheetError}</p>}
           {!status.workingDay && <p style={muted}>Not a working day.</p>}
-          <p style={muted}>{Object.entries(counts).map(([k, v]) => `${v} ${k}`).join(' · ') || 'No one on the roster yet.'}</p>
+          {status.members.length === 0 ? <p style={muted}>No one on the roster yet. An admin adds people in Settings.</p> : <Tiles counts={counts} total={status.members.length} />}
           <table style={table}><thead><tr><th style={th}>Employee</th><th style={th}>Status</th><th style={th}>Sheet row</th><th style={th}>Reminder</th></tr></thead>
             <tbody>{status.members.map((m) => (
-              <tr key={m.id}><td style={td}>{m.name}</td><td style={td}><Badge value={m.status} /></td><td style={td}>{m.sheetRowId || '—'}</td>
+              <tr key={m.id}><td style={td}><span style={{ display: 'inline-flex', alignItems: 'center', gap: 10 }}><Avatar name={m.name} />{m.name}</span></td><td style={td}><Badge value={m.status} /></td><td style={td}>{m.sheetRowId || '—'}</td>
                 <td style={td}>{m.reminder ? <><Badge value={m.reminder.status} /> <span style={muted}>{fmtTime(m.reminder.at)}</span></> : '—'}</td></tr>
             ))}</tbody></table>
         </>
@@ -164,5 +164,29 @@ function History({ roster, setNotice }) {
         </div>
       ))}
     </section>
+  )
+}
+
+// Status tiles: values in text ink; color sits on the icon and the meter, always with a label.
+function Tiles({ counts, total }) {
+  const done = (counts.Logged || 0) + (counts.Flagged || 0)
+  const pct = total ? Math.round((done / total) * 100) : 0
+  const tiles = [
+    ['✓', '#0ca30c', 'Submitted', done, `${pct}% of ${total} on the roster`],
+    ['○', '#d03b3b', 'Not submitted', total - done, 'reminded privately at end of day'],
+    ['⚑', '#d4622f', 'Needs review', counts.Flagged || 0, 'flagged entries'],
+    ['✎', '#6b7280', 'Drafts', counts.Draft || 0, 'started, not confirmed']
+  ]
+  return (
+    <div className="eod-tiles">
+      {tiles.map(([glyph, color, label, value, sub], i) => (
+        <div key={label} className="eod-tile">
+          <div className="eod-tile-label"><span aria-hidden style={{ color }}>{glyph}</span>{label}</div>
+          <div className="eod-tile-value">{value}</div>
+          <div className="eod-tile-sub">{sub}</div>
+          {i === 0 && <div className="eod-meter" role="meter" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Submitted today"><span style={{ width: `${pct}%` }} /></div>}
+        </div>
+      ))}
+    </div>
   )
 }

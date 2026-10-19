@@ -1,7 +1,7 @@
 'use client'
 import { useEffect, useState, useCallback, useRef } from 'react'
 import Script from 'next/script'
-import { Shell, card, button, ghost, muted, Badge, getJson, post, Notice } from '../ui.js'
+import { Shell, card, button, ghost, muted, Badge, getJson, post, Notice, Skeleton } from '../ui.js'
 
 export default function Integrations() {
   return <Shell path="/eod/integrations" role="admin" title="Integrations">{() => <Page />}</Shell>
@@ -52,7 +52,7 @@ function Page() {
       <section style={card}>
         <h3 style={{ marginTop: 0 }}>Company connections</h3>
         <p style={muted}>Connect once for the whole team. Employees never sign in to Slack or Google; the app acts through these connections. Status is read live from viaSocket.</p>
-        {!status ? <p>Loading…</p> : Object.entries(status).map(([key, app]) => (
+        {!status ? <Skeleton lines={2} height={36} /> : Object.entries(status).map(([key, app]) => (
           <div key={key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 0', borderTop: '1px solid #f0f1f3', flexWrap: 'wrap' }}>
             <img src={app.icon} alt="" width={24} height={24} />
             <strong style={{ minWidth: 120 }}>{app.name}</strong>

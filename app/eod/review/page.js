@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { Shell, card, input, button, ghost, muted, Badge, getJson, post, Notice, List, fmtTime } from '../ui.js'
+import { Shell, card, input, button, ghost, muted, Badge, getJson, post, Notice, List, fmtTime, Skeleton } from '../ui.js'
 
 export default function Review() {
   return <Shell path="/eod/review" role="tl" title="Needs review">{() => <Queue />}</Shell>
@@ -19,7 +19,7 @@ function Queue() {
     <>
       <Notice message={notice} onClose={() => setNotice('')} />
       <p style={muted}>Entries that look incomplete or contradictory, and entries whose sheet or Slack step failed. The entry stays exactly as the employee confirmed it; resolving only records that you looked.</p>
-      {!entries ? <p>Loading…</p> : entries.length === 0 ? <p style={card}>Nothing needs review.</p> : entries.map((e) => (
+      {!entries ? <div style={card}><Skeleton lines={4} /></div> : entries.length === 0 ? <div style={{ ...card, textAlign: 'center', padding: 40 }}><div style={{ fontSize: 36 }}>✓</div><h3 style={{ margin: '8px 0 4px' }}>All clear</h3><p style={muted}>No flagged entries or failed steps need your attention.</p></div> : entries.map((e) => (
         <section key={e.id} style={card}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
             <strong>{e.employee}</strong><span>{e.date}</span><Badge value={e.status} /><span style={muted}>row {e.sheet?.sheetRowId || '—'} · {fmtTime(e.submittedAt)}</span>

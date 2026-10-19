@@ -1,6 +1,6 @@
 'use client'
 import { useEffect, useState, useCallback } from 'react'
-import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, Picker, fmtTime } from '../ui.js'
+import { Shell, card, input, button, ghost, muted, table, th, td, Badge, getJson, post, Notice, Picker, fmtTime, Skeleton } from '../ui.js'
 
 export default function Settings() {
   return <Shell path="/eod/settings" role="admin" title="Settings">{(me) => <Page me={me} />}</Shell>
@@ -18,7 +18,7 @@ function Page({ me }) {
   async function save(settings, ok = 'Saved.') {
     try { await post('/api/eod/settings', { settings }, 'PUT'); setNotice(ok); load() } catch (e) { setNotice(e.message) }
   }
-  if (!data) return <><Notice message={notice} onClose={() => setNotice('')} /><p>Loading…</p></>
+  if (!data) return <><Notice message={notice} onClose={() => setNotice('')} /><div style={card}><Skeleton lines={6} /></div></>
   return (
     <>
       <Notice message={notice} onClose={() => setNotice('')} />

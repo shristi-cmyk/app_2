@@ -1,0 +1,111 @@
+/* EOD Reports look and feel. Scoped to .eod so the site's other tools are untouched.
+   Inline styles in the pages set the base; this file adds states (hover, focus, press), motion and
+   the few components inline styles can't express. */
+
+.eod {
+  --ink: #111827;
+  --ink-2: #4b5563;
+  --ink-3: #6b7280;
+  --line: #e5e7eb;
+  --surface: #ffffff;
+  --page: #f4f5fb;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
+  --good: #0ca30c;
+  --warning: #fab219;
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  min-height: 100vh;
+  background: var(--page);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.eod * { box-sizing: border-box; }
+.eod a { color: var(--accent); }
+
+/* Header */
+.eod-hero {
+  background: linear-gradient(120deg, #312e81 0%, #4f46e5 55%, #7c3aed 100%);
+  color: #fff;
+  padding: 20px 16px 64px;
+}
+.eod-hero-inner { max-width: 1100px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.eod-brand { display: flex; align-items: center; gap: 12px; }
+.eod-logo { width: 40px; height: 40px; border-radius: 12px; background: rgba(255,255,255,.16); display: grid; place-items: center; }
+.eod-brand h1 { margin: 0; font-size: 22px; letter-spacing: -.01em; }
+.eod-brand p { margin: 2px 0 0; font-size: 13px; opacity: .8; }
+.eod-user { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,.12); padding: 6px 8px 6px 6px; border-radius: 999px; font-size: 13px; }
+.eod-user button { background: rgba(255,255,255,.18); color: #fff; border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; font: inherit; transition: background .15s; }
+.eod-user button:hover { background: rgba(255,255,255,.3); }
+.eod-role { font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; opacity: .85; }
+
+.eod-main { max-width: 1100px; margin: -44px auto 0; padding: 0 16px 48px; position: relative; }
+
+/* Tabs */
+.eod-tabs { display: flex; gap: 4px; background: var(--surface); padding: 6px; border-radius: 14px; box-shadow: 0 6px 24px rgba(17,24,39,.08); margin-bottom: 20px; overflow-x: auto; }
+.eod a.eod-tab { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 10px; color: var(--ink-2); text-decoration: none !important; font-weight: 500; font-size: 14px; white-space: nowrap; transition: background .15s, color .15s; }
+.eod a.eod-tab:hover { background: var(--accent-soft); color: var(--accent); }
+.eod a.eod-tab[aria-current='page'] { background: var(--accent); color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,.35); }
+
+/* Cards, controls */
+.eod section { transition: box-shadow .2s, transform .2s; }
+.eod section:hover { box-shadow: 0 8px 28px rgba(17,24,39,.08) !important; }
+.eod button { transition: transform .08s, filter .15s, box-shadow .15s, background .15s; }
+.eod button:not(:disabled):hover { filter: brightness(1.06); box-shadow: 0 4px 12px rgba(17,24,39,.12); }
+.eod button:not(:disabled):active { transform: translateY(1px); }
+.eod button:disabled { opacity: .55; cursor: not-allowed; }
+.eod input, .eod select, .eod textarea { transition: border-color .15s, box-shadow .15s; }
+.eod input:focus, .eod select:focus, .eod textarea:focus { outline: none; border-color: var(--accent) !important; box-shadow: 0 0 0 3px rgba(79,70,229,.18); }
+.eod button:focus-visible, .eod a:focus-visible { outline: 3px solid rgba(79,70,229,.45); outline-offset: 2px; }
+.eod tbody tr { transition: background .12s; }
+.eod tbody tr:hover { background: #f8f9ff; }
+.eod details > summary { cursor: pointer; }
+
+/* Toasts */
+.eod-toasts { position: fixed; right: 16px; bottom: 16px; display: flex; flex-direction: column; gap: 8px; z-index: 50; max-width: min(420px, calc(100vw - 32px)); }
+.eod-toast { background: #111827; color: #fff; padding: 12px 14px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.25); display: flex; gap: 10px; align-items: flex-start; font-size: 14px; animation: eod-in .25s ease-out; cursor: pointer; }
+.eod-toast[data-kind='error'] { background: #7f1d1d; }
+.eod-toast[data-kind='ok'] { background: #14532d; }
+@keyframes eod-in { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Skeletons */
+.eod-skel { border-radius: 8px; background: linear-gradient(90deg, #eceef3 25%, #f6f7fa 50%, #eceef3 75%); background-size: 200% 100%; animation: eod-shimmer 1.2s infinite linear; }
+@keyframes eod-shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+/* Chat */
+.eod-bubble { max-width: 80%; padding: 10px 14px; border-radius: 16px; white-space: pre-wrap; line-height: 1.45; animation: eod-in .2s ease-out; }
+.eod-bubble.bot { align-self: flex-start; background: #f1f2f8; color: var(--ink); border-bottom-left-radius: 4px; }
+.eod-bubble.you { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+.eod-typing { display: inline-flex; gap: 4px; padding: 12px 14px; }
+.eod-typing span { width: 7px; height: 7px; border-radius: 50%; background: #9ca3af; animation: eod-dot 1s infinite ease-in-out; }
+.eod-typing span:nth-child(2) { animation-delay: .15s; }
+.eod-typing span:nth-child(3) { animation-delay: .3s; }
+@keyframes eod-dot { 0%, 80%, 100% { transform: translateY(0); opacity: .5; } 40% { transform: translateY(-4px); opacity: 1; } }
+.eod-chip { border: 1px solid var(--line); background: #fff; color: var(--ink-2); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+.eod-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Stepper */
+.eod-steps { display: flex; align-items: center; gap: 8px; margin: 4px 0 16px; flex-wrap: wrap; }
+.eod-step { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-3); }
+.eod-step i { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-style: normal; font-weight: 700; font-size: 12px; background: #eceef3; color: var(--ink-3); transition: background .2s, color .2s; }
+.eod-step[data-state='done'] i { background: var(--good); color: #fff; }
+.eod-step[data-state='current'] i { background: var(--accent); color: #fff; box-shadow: 0 0 0 4px rgba(79,70,229,.15); }
+.eod-step[data-state='current'], .eod-step[data-state='done'] { color: var(--ink); font-weight: 600; }
+.eod-step-line { width: 32px; height: 2px; background: var(--line); border-radius: 2px; }
+
+/* KPI tiles and meter */
+.eod-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 16px 0; }
+.eod-tile { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fff; }
+.eod-tile-label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--ink-2); }
+.eod-tile-value { font-size: 28px; font-weight: 650; margin-top: 4px; color: var(--ink); }
+.eod-tile-sub { font-size: 12px; color: var(--ink-3); }
+.eod-meter { height: 8px; border-radius: 4px; background: #d7f2d7; overflow: hidden; margin-top: 10px; }
+.eod-meter > span { display: block; height: 100%; border-radius: 4px; background: var(--good); transition: width .5s ease; }
+
+.eod-avatar { width: 30px; height: 30px; border-radius: 50%; display: inline-grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; flex: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .eod *, .eod *::before, .eod *::after { animation: none !important; transition: none !important; }
+}
