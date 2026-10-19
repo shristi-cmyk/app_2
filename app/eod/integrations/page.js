@@ -79,7 +79,7 @@ function PrebuiltUi({ token, setNotice }) {
   useEffect(() => { if (window.viaSocket?.mount) setLoaded(true) }, [])
   useEffect(() => {
     if (!loaded || !token || embedRef.current) return
-    embedRef.current = window.viaSocket.mount({ embedToken: token, parent: '#eod-viasocket-embed', config: { pageheading: 'Automation', showEnabled: true } })
+    embedRef.current = window.viaSocket.mount({ embedToken: token, parent: '#eod-viasocket-embed', config: { pageheading: 'Automation', showEnabled: false } })
     embedRef.current.on?.('error', (e) => setNotice(`viaSocket: ${e?.message || 'the integrations view reported an error'}`))
     return () => { embedRef.current?.destroy?.(); embedRef.current = null }
   }, [loaded, token, setNotice])
@@ -87,7 +87,7 @@ function PrebuiltUi({ token, setNotice }) {
     <section style={card}>
       <Script src="https://embed.viasocket.com/prod-embedcomponent.js" strategy="afterInteractive" onLoad={() => setLoaded(true)} />
       <h3 style={{ marginTop: 0 }}>viaSocket</h3>
-      <p style={muted}>Browse apps and the team's automations. The four EOD events are set up on the Automation page.</p>
+      <p style={muted}>Browse viaSocket's apps and build extra automations for the team. The four EOD events and their history are on the Automation page; the Slack and Google Sheets connections above are managed here, not in this box.</p>
       <div id="eod-viasocket-embed" style={{ height: 640, border: '1px solid #e3e5e8', borderRadius: 8 }} />
     </section>
   )
