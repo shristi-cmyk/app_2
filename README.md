@@ -9,7 +9,7 @@ For SDK and GTM it drafts the email. You review each draft: send it as is, edit 
 
 1. **Setup → Import**: in Google Sheets, File → Download → CSV for the `TOTAL PUBLIC APPS` tab and the `Shristi_Pipleline` tab, then pick each file. Re-importing keeps verdicts and drafts.
 2. **Setup → Connect Gmail**, and fill in your name, pitches and email style.
-3. **Dashboard → Check the next N apps**. Clear cases are settled by rules for free (own products, enterprise giants, duplicates, already active or rejected in the pipeline); the rest go to Claude, one call per app.
+3. **Dashboard → Check the next N apps**. Clear cases are settled by rules for free (own products, enterprise giants, duplicates, already active or rejected in the pipeline); the rest go to viaSocket's built-in AI (Run AI Model, 1 credit per call), using the same embed secret, so no extra API key is needed.
 4. **Review drafts**: send, edit, ask for changes, switch SDK/GTM, or skip.
 5. **Pipeline**: the sheet's rows plus every email sent from here; edit status, follow-up date and notes.
 
@@ -32,7 +32,6 @@ Template placeholders: `{{buyer_email}}`, `{{buyer_name}}`, `{{invoice_no}}`, `{
 | `VIASOCKET_EMBED_SECRET` | from the viaSocket dashboard (Install Code). Server only. |
 | `APP_PASSWORD` | password for the browser login prompt (choose one) |
 | `DATA_DIR` | optional; folder for the state files (use persistent storage) |
-| `ANTHROPIC_API_KEY` | Claude API key, for Partner Outreach's AI check and drafts. Server only. |
 
 ## Run
 

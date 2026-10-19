@@ -105,8 +105,8 @@ function Dashboard({ stats, refresh, setMessage, go }) {
 
       <section style={card}>
         <h2 style={{ marginTop: 0 }}>Check apps with AI</h2>
-        {!stats.hasKey && <p style={{ color: '#b3261e' }}>Set ANTHROPIC_API_KEY on the server to run the AI check.</p>}
-        <p style={{ marginTop: 0, color: '#555' }}>Clear cases (own products, enterprise giants, duplicates, already active or rejected in the pipeline) are settled by rules for free. The rest are checked one by one and an email is drafted for each SDK or GTM pick. Start small to review the quality.</p>
+        {!stats.hasKey && <p style={{ color: '#b3261e' }}>Set VIASOCKET_EMBED_SECRET on the server to run the AI check.</p>}
+        <p style={{ marginTop: 0, color: '#555' }}>Clear cases (own products, enterprise giants, duplicates, already active or rejected in the pipeline) are settled by rules for free. The rest are checked one by one with viaSocket AI (1 credit per app) and an email is drafted for each SDK or GTM pick. Start small to review the quality.</p>
         {job?.running ? (
           <>
             <div style={{ background: '#eef0f4', borderRadius: 6, height: 14, marginBottom: 8 }}>
